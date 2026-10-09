@@ -57,6 +57,17 @@ class FilterParams(BaseModel):
     life_stage: str | None = None
     platform: str | None = None
     segment: str | None = None
+    channel: str | None = None
+    interaction_type: str | None = None
+    login_recency: str | None = None
+    tenure: str | None = None
+    follow_up_recency: str | None = None
+    driving_band: str | None = None
+    insurer: str | None = None
+    renewal: str | None = None
+    premium_band: str | None = None
+    ncd: str | None = None
+    claims: str | None = None
     search: str | None = None
 
 
@@ -88,6 +99,17 @@ def _filtered(f: FilterParams):
         life_stage=f.life_stage,
         platform=f.platform,
         segment=f.segment,
+        channel=f.channel,
+        interaction_type=f.interaction_type,
+        login_recency=f.login_recency,
+        tenure=f.tenure,
+        follow_up_recency=f.follow_up_recency,
+        driving_band=f.driving_band,
+        insurer=f.insurer,
+        renewal=f.renewal,
+        premium_band=f.premium_band,
+        ncd=f.ncd,
+        claims=f.claims,
         search=f.search,
     )
 

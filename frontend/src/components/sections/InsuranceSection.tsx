@@ -3,8 +3,10 @@ import { ChartCard, KpiCard, StatRow } from "../ui";
 import { HorizontalBars, VerticalBars } from "../charts";
 import { SectionHeading } from "./DemographicsSection";
 import { fmtCompact, fmtNum } from "../../lib/format";
+import { useDashboard } from "../../context/DashboardContext";
 
 export function InsuranceSection({ data }: { data: Insurance }) {
+  const { filters, toggleFilter } = useDashboard();
   return (
     <section>
       <SectionHeading
@@ -47,7 +49,12 @@ export function InsuranceSection({ data }: { data: Insurance }) {
 
       <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
         <ChartCard title="Premium bands" subtitle="Annual premium distribution">
-          <VerticalBars data={data.premium_bands} color="#4f46e5" />
+          <VerticalBars
+            data={data.premium_bands}
+            color="#4f46e5"
+            onSelect={(label) => toggleFilter("premium_band", label)}
+            selected={filters.premium_band}
+          />
         </ChartCard>
         <ChartCard
           title="Avg premium by vehicle segment"
@@ -59,14 +66,26 @@ export function InsuranceSection({ data }: { data: Insurance }) {
             color="#0ea5e9"
             name="Avg premium ($)"
             height={240}
+            onSelect={(label) => toggleFilter("segment", label)}
+            selected={filters.segment}
           />
         </ChartCard>
 
         <ChartCard title="Renewal pipeline" subtitle="Days to policy expiry">
-          <VerticalBars data={data.renewal_pipeline} color="#f59e0b" />
+          <VerticalBars
+            data={data.renewal_pipeline}
+            color="#f59e0b"
+            onSelect={(label) => toggleFilter("renewal", label)}
+            selected={filters.renewal}
+          />
         </ChartCard>
         <ChartCard title="NCD distribution" subtitle="No-claim discount %" className="lg:col-span-2">
-          <VerticalBars data={data.ncd_distribution} color="#10b981" />
+          <VerticalBars
+            data={data.ncd_distribution}
+            color="#10b981"
+            onSelect={(label) => toggleFilter("ncd", label)}
+            selected={filters.ncd}
+          />
         </ChartCard>
 
         <ChartCard
@@ -82,7 +101,13 @@ export function InsuranceSection({ data }: { data: Insurance }) {
           />
         </ChartCard>
         <ChartCard title="Insurer mix" subtitle="Top insurers by customers">
-          <HorizontalBars data={data.insurer_mix.slice(0, 6)} color="#7c3aed" height={240} />
+          <HorizontalBars
+            data={data.insurer_mix.slice(0, 6)}
+            color="#7c3aed"
+            height={240}
+            onSelect={(label) => toggleFilter("insurer", label)}
+            selected={filters.insurer}
+          />
         </ChartCard>
 
         <ChartCard title="EV vs petrol" subtitle="Average annual premium" className="lg:col-span-1">
@@ -94,7 +119,12 @@ export function InsuranceSection({ data }: { data: Insurance }) {
           </div>
         </ChartCard>
         <ChartCard title="Claims distribution" subtitle="Claims per customer (3y)" className="lg:col-span-2">
-          <VerticalBars data={data.claims_distribution} color="#f43f5e" />
+          <VerticalBars
+            data={data.claims_distribution}
+            color="#f43f5e"
+            onSelect={(label) => toggleFilter("claims", label)}
+            selected={filters.claims}
+          />
         </ChartCard>
       </div>
     </section>

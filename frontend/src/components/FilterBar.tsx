@@ -60,19 +60,7 @@ export function FilterBar({
   }, [search]);
 
   const set = (patch: Partial<DashboardFilters>) => onChange({ ...value, ...patch });
-  const hasFilters =
-    value.city ||
-    value.sentiment ||
-    value.tier ||
-    value.activity_status ||
-    value.gender ||
-    value.user_type ||
-    value.age_band ||
-    value.housing_type ||
-    value.life_stage ||
-    value.platform ||
-    value.segment ||
-    value.search;
+  const hasFilters = Object.values(value).some(Boolean);
 
   const FILTER_LABELS: Record<string, string> = {
     city: "City",
@@ -86,6 +74,17 @@ export function FilterBar({
     life_stage: "Life stage",
     platform: "Platform",
     segment: "Segment",
+    channel: "Channel",
+    interaction_type: "Interaction",
+    login_recency: "Login recency",
+    tenure: "Tenure",
+    follow_up_recency: "Follow-up",
+    driving_band: "Driving band",
+    insurer: "Insurer",
+    renewal: "Renewal",
+    premium_band: "Premium",
+    ncd: "NCD",
+    claims: "Claims",
     search: "Search",
   };
   const active = Object.entries(value).filter(([, v]) => v) as [string, string][];

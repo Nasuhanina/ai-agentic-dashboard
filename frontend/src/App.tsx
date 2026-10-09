@@ -151,10 +151,6 @@ function Layout() {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <div className="hidden text-right text-xs text-ink-400 sm:block">
-              <div>Data as of 09 Oct 2026</div>
-              <div>{data ? data.summary.total_users.toLocaleString() : "…"} customers</div>
-            </div>
             <span className="chip bg-indigo-50 capitalize text-indigo-700 ring-1 ring-indigo-200">
               {session.role}
             </span>
@@ -204,7 +200,8 @@ function Layout() {
           </div>
 
           <footer className="pb-6 text-center text-xs text-ink-400">
-            Customer Insights Dashboard · FastAPI + React · customer360 sample data
+            Data as of 09 Oct 2026 · {data ? data.summary.total_users.toLocaleString() : "…"} customers
+            · Customer Insights Dashboard · FastAPI + React · customer360 sample data
           </footer>
         </main>
       </div>

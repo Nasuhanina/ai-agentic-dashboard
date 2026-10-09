@@ -22,7 +22,12 @@ export function DrivingSection({ data }: { data: DrivingInsights }) {
       />
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <ChartCard title="Driving score bands" subtitle="Behaviour score out of 100">
-          <VerticalBars data={data.driving_score_bands} color="#4f46e5" />
+          <VerticalBars
+            data={data.driving_score_bands}
+            color="#4f46e5"
+            onSelect={(label) => toggleFilter("driving_band", label)}
+            selected={filters.driving_band}
+          />
         </ChartCard>
         <ChartCard title="Vehicle segment" subtitle="Dominant segment per customer">
           <Donut

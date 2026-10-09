@@ -19,6 +19,58 @@ ACTIVITY_ORDER = ["Active", "Occasional", "Dormant", "At Risk"]
 SEGMENT_ORDER = ["Mainstream", "Continental", "EV", "Luxury", "Unknown"]
 
 
+def _login_bucket(u: User) -> str:
+    d = u.days_since_last_login
+    if d == 0: return "Today"
+    if d <= 3: return "1-3d"
+    if d <= 7: return "4-7d"
+    if d <= 14: return "8-14d"
+    if d <= 30: return "15-30d"
+    return ">30d"
+
+
+def _tenure_bucket(u: User) -> str:
+    t = u.tenure_days
+    if t < 180: return "<6m"
+    if t < 365: return "6-12m"
+    if t < 730: return "1-2y"
+    if t < 1460: return "2-4y"
+    return "4y+"
+
+
+def _followup_bucket(u: User) -> str:
+    d = u.days_since_follow_up
+    if d <= 7: return "0-7d"
+    if d <= 30: return "8-30d"
+    if d <= 60: return "31-60d"
+    return ">60d"
+
+
+def _driving_band(score: int) -> str:
+    if score < 50: return "Poor (<50)"
+    if score < 70: return "Fair (50-69)"
+    if score < 85: return "Good (70-84)"
+    return "Excellent (85+)"
+
+
+def _premium_band(value: float) -> str:
+    if value < 1000: return "<1k"
+    if value < 1500: return "1k-1.5k"
+    if value < 2500: return "1.5k-2.5k"
+    if value < 4000: return "2.5k-4k"
+    return "4k+"
+
+
+def _renewal_bucket(days: int) -> str:
+    if days < 0: return "Expired"
+    if days <= 30: return "0-30d"
+    if days <= 60: return "31-60d"
+    if days <= 90: return "61-90d"
+    if days <= 180: return "91-180d"
+    if days <= 365: return "181-365d"
+    return ">365d"
+
+
 def filter_users(
     city: str | None = None,
     sentiment: str | None = None,
@@ -31,6 +83,17 @@ def filter_users(
     life_stage: str | None = None,
     platform: str | None = None,
     segment: str | None = None,
+    channel: str | None = None,
+    interaction_type: str | None = None,
+    login_recency: str | None = None,
+    tenure: str | None = None,
+    follow_up_recency: str | None = None,
+    driving_band: str | None = None,
+    insurer: str | None = None,
+    renewal: str | None = None,
+    premium_band: str | None = None,
+    ncd: str | None = None,
+    claims: str | None = None,
     search: str | None = None,
 ) -> list[User]:
     result = USERS
@@ -56,6 +119,28 @@ def filter_users(
         result = [u for u in result if u.platform.lower() == platform.lower()]
     if segment:
         result = [u for u in result if u.primary_transport_mode.lower() == segment.lower()]
+    if channel:
+        result = [u for u in result if u.last_interaction_channel.lower() == channel.lower()]
+    if interaction_type:
+        result = [u for u in result if u.last_interaction_type.lower() == interaction_type.lower()]
+    if login_recency:
+        result = [u for u in result if _login_bucket(u) == login_recency]
+    if tenure:
+        result = [u for u in result if _tenure_bucket(u) == tenure]
+    if follow_up_recency:
+        result = [u for u in result if _followup_bucket(u) == follow_up_recency]
+    if driving_band:
+        result = [u for u in result if _driving_band(u.driving_score) == driving_band]
+    if insurer:
+        result = [u for u in result if u.insurer.lower() == insurer.lower()]
+    if renewal:
+        result = [u for u in result if u.days_to_insurance_expiry != -1 and _renewal_bucket(u.days_to_insurance_expiry) == renewal]
+    if premium_band:
+        result = [u for u in result if u.annual_premium_sgd > 0 and _premium_band(u.annual_premium_sgd) == premium_band]
+    if ncd:
+        result = [u for u in result if u.days_to_insurance_expiry != -1 and str(u.ncd_pct) == ncd]
+    if claims:
+        result = [u for u in result if u.days_to_insurance_expiry != -1 and str(u.claims_3y) == claims]
     if search:
         s = search.lower()
         result = [
@@ -138,29 +223,8 @@ def activity(users: list[User]) -> dict[str, Any]:
         "avg_sessions_per_week": _avg([u.sessions_per_week for u in users]),
         "avg_logins_30d": _avg([u.logins_30d for u in users]),
         "avg_days_since_login": _avg([u.days_since_last_login for u in users]),
-        "tenure_buckets": _distribution(
-            users,
-            lambda u: (
-                "<6m" if u.tenure_days < 180
-                else "6-12m" if u.tenure_days < 365
-                else "1-2y" if u.tenure_days < 730
-                else "2-4y" if u.tenure_days < 1460
-                else "4y+"
-            ),
-            ["<6m", "6-12m", "1-2y", "2-4y", "4y+"],
-        ),
-        "login_recency": _distribution(
-            users,
-            lambda u: (
-                "Today" if u.days_since_last_login == 0
-                else "1-3d" if u.days_since_last_login <= 3
-                else "4-7d" if u.days_since_last_login <= 7
-                else "8-14d" if u.days_since_last_login <= 14
-                else "15-30d" if u.days_since_last_login <= 30
-                else ">30d"
-            ),
-            ["Today", "1-3d", "4-7d", "8-14d", "15-30d", ">30d"],
-        ),
+        "tenure_buckets": _distribution(users, _tenure_bucket, ["<6m", "6-12m", "1-2y", "2-4y", "4y+"]),
+        "login_recency": _distribution(users, _login_bucket, ["Today", "1-3d", "4-7d", "8-14d", "15-30d", ">30d"]),
     }
 
 
@@ -174,16 +238,7 @@ def interactions(users: list[User]) -> dict[str, Any]:
         "avg_csat": _avg_pos([u.satisfaction_csat for u in users]),
         "follow_up_due": sum(1 for u in users if u.follow_up_needed),
         "avg_days_since_follow_up": _avg([u.days_since_follow_up for u in users]),
-        "follow_up_recency": _distribution(
-            users,
-            lambda u: (
-                "0-7d" if u.days_since_follow_up <= 7
-                else "8-30d" if u.days_since_follow_up <= 30
-                else "31-60d" if u.days_since_follow_up <= 60
-                else ">60d"
-            ),
-            ["0-7d", "8-30d", "31-60d", ">60d"],
-        ),
+        "follow_up_recency": _distribution(users, _followup_bucket, ["0-7d", "8-30d", "31-60d", ">60d"]),
     }
 
 
@@ -204,12 +259,7 @@ def driving_insights(users: list[User]) -> dict[str, Any]:
         "transport_modes": _distribution(users, lambda u: u.primary_transport_mode, SEGMENT_ORDER),
         "driving_score_bands": _distribution(
             scored,
-            lambda u: (
-                "Poor (<50)" if u.driving_score < 50
-                else "Fair (50-69)" if u.driving_score < 70
-                else "Good (70-84)" if u.driving_score < 85
-                else "Excellent (85+)"
-            ),
+            lambda u: _driving_band(u.driving_score),
             ["Poor (<50)", "Fair (50-69)", "Good (70-84)", "Excellent (85+)"],
         ),
     }
@@ -369,22 +419,6 @@ def insurance(users: list[User]) -> dict[str, Any]:
     with_claim = sum(1 for c in claims if c > 0)
     platform = sum(1 for u in insured if u.insured_via_platform)
 
-    def premium_band(value: float) -> str:
-        if value < 1000: return "<1k"
-        if value < 1500: return "1k-1.5k"
-        if value < 2500: return "1.5k-2.5k"
-        if value < 4000: return "2.5k-4k"
-        return "4k+"
-
-    def renewal_bucket(days: int) -> str:
-        if days < 0: return "Expired"
-        if days <= 30: return "0-30d"
-        if days <= 60: return "31-60d"
-        if days <= 90: return "61-90d"
-        if days <= 180: return "91-180d"
-        if days <= 365: return "181-365d"
-        return ">365d"
-
     segment_premiums: dict[str, list[float]] = defaultdict(list)
     for u in insured:
         if u.annual_premium_sgd > 0:
@@ -422,12 +456,12 @@ def insurance(users: list[User]) -> dict[str, Any]:
         "avg_ncd": _avg([u.ncd_pct for u in insured]),
         "value_at_stake": round(sum(u.annual_premium_sgd for u in expiring_90), 0),
         "expiring_90": len(expiring_90),
-        "premium_bands": _distribution(insured, lambda u: premium_band(u.annual_premium_sgd), PREMIUM_BANDS),
+        "premium_bands": _distribution(insured, lambda u: _premium_band(u.annual_premium_sgd), PREMIUM_BANDS),
         "premium_by_segment": premium_by_segment,
         "insurer_mix": _distribution(insured, lambda u: u.insurer),
         "ncd_distribution": _distribution(insured, lambda u: str(u.ncd_pct), NCD_VALUES),
         "claims_distribution": _distribution(insured, lambda u: str(u.claims_3y), ["0", "1", "2"]),
-        "renewal_pipeline": _distribution(insured, lambda u: renewal_bucket(u.days_to_insurance_expiry), RENEWAL_BUCKETS),
+        "renewal_pipeline": _distribution(insured, lambda u: _renewal_bucket(u.days_to_insurance_expiry), RENEWAL_BUCKETS),
         "risk_cohorts": risk_cohorts,
         "ev_vs_ice": {
             "ev": _avg([u.annual_premium_sgd for u in insured if u.fuel_type.upper() == "EV" and u.annual_premium_sgd > 0]),

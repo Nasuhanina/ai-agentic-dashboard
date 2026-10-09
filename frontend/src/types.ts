@@ -230,6 +230,17 @@ export interface DashboardFilters {
   life_stage?: string;
   platform?: string;
   segment?: string;
+  channel?: string;
+  interaction_type?: string;
+  login_recency?: string;
+  tenure?: string;
+  follow_up_recency?: string;
+  driving_band?: string;
+  insurer?: string;
+  renewal?: string;
+  premium_band?: string;
+  ncd?: string;
+  claims?: string;
   search?: string;
 }
 

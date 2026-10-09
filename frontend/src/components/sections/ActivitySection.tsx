@@ -22,10 +22,20 @@ export function ActivitySection({ data }: { data: Activity }) {
           />
         </ChartCard>
         <ChartCard title="Login recency" subtitle="Days since last login">
-          <VerticalBars data={data.login_recency} color="#0ea5e9" />
+          <VerticalBars
+            data={data.login_recency}
+            color="#0ea5e9"
+            onSelect={(label) => toggleFilter("login_recency", label)}
+            selected={filters.login_recency}
+          />
         </ChartCard>
         <ChartCard title="Tenure cohorts" subtitle="Length of relationship">
-          <VerticalBars data={data.tenure_buckets} color="#7c3aed" />
+          <VerticalBars
+            data={data.tenure_buckets}
+            color="#7c3aed"
+            onSelect={(label) => toggleFilter("tenure", label)}
+            selected={filters.tenure}
+          />
         </ChartCard>
         <ChartCard title="Platform" subtitle="Device split">
           <Donut

@@ -111,7 +111,7 @@ export function LikelihoodSection() {
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <KpiCard label={`At ≥${min}% likely`} value={data ? data.total.toLocaleString() : "…"} sub={`people likely to ${productLabel.toLowerCase()}`} />
-        <KpiCard label="Can be marketed to" value={data ? data.reachable.toLocaleString() : "…"} sub="marketing consent, duplicates removed" tone="emerald" />
+        <KpiCard label="Can be marketed to" value={data ? data.reachable.toLocaleString() : "…"} sub="marketing consent" tone="emerald" />
         <KpiCard label="Expected value" value={data ? sgd(data.expected_sgd) : "…"} sub={isWeb ? "if these visitors download the app" : "from customers we can market to"} tone="violet" />
       </div>
 
