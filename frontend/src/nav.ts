@@ -36,5 +36,7 @@ export const NAV_ITEMS: NavItem[] = [
   { key: "loyalty", label: "Loyalty", path: "/loyalty" },
   { key: "insurance", label: "Insurance insights", path: "/insurance" },
   { key: "segments", label: "Segments", path: "/segments", children: SEGMENT_CHILDREN },
+  { key: "likelihood", label: "Likelihood to buy", path: "/likelihood" },
+  { key: "campaign", label: "Campaign builder", path: "/campaign" },
   { key: "users", label: "Customers", path: "/customers" },
 ];

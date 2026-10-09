@@ -16,6 +16,12 @@ import type {
   UsersResponse,
 } from "./types";
 import { canAccess } from "./permissions";
+import type {
+  CampaignResult,
+  PropensityMeta,
+  PropensityUser,
+  PropensityUsers,
+} from "./propensity/types";
 
 const BASE = "/api";
 
@@ -148,4 +154,39 @@ export function fetchUsers(
 
 export function fetchUser(id: string): Promise<User> {
   return get<User>(`/users/${id}`);
+}
+
+// --- Likelihood to buy + campaign builder -----------------------------------
+
+export function fetchPropensityMeta(): Promise<PropensityMeta> {
+  return get<PropensityMeta>("/propensity/meta");
+}
+
+export function fetchPropensityUsers(
+  filters: DashboardFilters,
+  params: { product: string; min_pct: number; group: string; page: number; page_size: number; sort: string }
+): Promise<PropensityUsers> {
+  return get<PropensityUsers>("/propensity/users", filters, params);
+}
+
+export function fetchPropensityUser(id: string): Promise<PropensityUser> {
+  return get<PropensityUser>(`/propensity/users/${id}`);
+}
+
+export interface CampaignParams {
+  product: string;
+  group: string;
+  channel: string;
+  offer: string;
+  min_pct: number;
+}
+
+export function fetchCampaign(filters: DashboardFilters, params: CampaignParams): Promise<CampaignResult> {
+  return get<CampaignResult>("/campaign", filters, { ...params });
+}
+
+export async function fetchAudienceCsv(filters: DashboardFilters, params: CampaignParams): Promise<string> {
+  const res = await fetch(`${BASE}/campaign/audience.csv${toQuery(filters, { ...params })}`, { headers: authHeaders() });
+  if (!res.ok) throw new ApiError(res.status, `Request failed: ${res.status} /campaign/audience.csv`);
+  return res.text();
 }
