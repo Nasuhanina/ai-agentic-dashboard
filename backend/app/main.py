@@ -3,17 +3,20 @@ from __future__ import annotations
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import PlainTextResponse
 from pydantic import BaseModel
 
 try:
     from . import config  # noqa: F401  (loads .env on import)
     from . import auth
+    from . import propensity
     from . import recommender
     from .data import analytics
     from .data.generator import USERS, get_user, user_to_dict
 except ImportError:
     import config  # noqa: F401  (loads .env on import)
     import auth
+    import propensity
     import recommender
     from data import analytics
     from data.generator import USERS, get_user, user_to_dict
@@ -250,6 +253,106 @@ def get_segments(
 ):
     result = analytics.segments(_filtered(city, sentiment, tier, activity_status, gender, user_type, search))
     return recommender.apply(result) if ai else result
+
+
+# --- Likelihood to buy + campaign builder (see propensity.py) -----------------
+
+def _allowed_ids(city, sentiment, tier, activity_status, gender, user_type, search) -> set[str] | None:
+    """Ids passing the global filter bar, or None when no filter is set."""
+    if not any([city, sentiment, tier, activity_status, gender, user_type, search]):
+        return None
+    return {u.id for u in _filtered(city, sentiment, tier, activity_status, gender, user_type, search)}
+
+
+def _check_product(product: str, allow_any: bool = True) -> None:
+    valid = set(propensity.PRODUCTS) | ({"", propensity.APP_DOWNLOAD} if allow_any else set())
+    if product not in valid:
+        raise HTTPException(status_code=400, detail=f"Unknown product '{product}'")
+
+
+@app.get("/api/propensity/meta")
+def get_propensity_meta(_account: auth.Account = Depends(require_admin)) -> dict:
+    return {**propensity.meta(), "history": propensity.history() if propensity.available() else None}
+
+
+@app.get("/api/propensity/users")
+def get_propensity_users(
+    product: str = "",
+    min_pct: float = Query(0, ge=0, le=100),
+    group: str = "",
+    page: int = Query(1, ge=1),
+    page_size: int = Query(25, ge=1, le=200),
+    sort: str = Query("likelihood"),
+    city: str | None = None,
+    sentiment: str | None = None,
+    tier: str | None = None,
+    activity_status: str | None = None,
+    gender: str | None = None,
+    user_type: str | None = None,
+    search: str | None = None,
+    _account: auth.Account = Depends(require_admin),
+):
+    if not propensity.available():
+        raise HTTPException(status_code=503, detail="Likelihood model needs customer360.csv")
+    _check_product(product)
+    ids = _allowed_ids(city, sentiment, tier, activity_status, gender, user_type, search)
+    return propensity.users(ids, product, min_pct, group, page, page_size, sort)
+
+
+@app.get("/api/propensity/users/{user_id}")
+def get_propensity_user(user_id: str, _account: auth.Account = Depends(require_admin)):
+    result = propensity.user(user_id)
+    if result is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    return result
+
+
+@app.get("/api/campaign")
+def get_campaign(
+    product: str = "insurance_switch",
+    group: str = "",
+    channel: str = "WhatsApp",
+    offer: str = "No offer",
+    min_pct: float = Query(20, ge=0, le=100),
+    city: str | None = None,
+    sentiment: str | None = None,
+    tier: str | None = None,
+    activity_status: str | None = None,
+    gender: str | None = None,
+    user_type: str | None = None,
+    search: str | None = None,
+    _account: auth.Account = Depends(require_admin),
+):
+    if not propensity.available():
+        raise HTTPException(status_code=503, detail="Campaign builder needs customer360.csv")
+    _check_product(product, allow_any=False)
+    if channel not in propensity.CHANNELS or offer not in propensity.OFFERS:
+        raise HTTPException(status_code=400, detail="Unknown channel or offer")
+    ids = _allowed_ids(city, sentiment, tier, activity_status, gender, user_type, search)
+    return propensity.campaign(ids, product, group, channel, offer, min_pct)
+
+
+@app.get("/api/campaign/audience.csv", response_class=PlainTextResponse)
+def get_campaign_audience(
+    product: str = "insurance_switch",
+    group: str = "",
+    channel: str = "WhatsApp",
+    offer: str = "No offer",
+    min_pct: float = Query(20, ge=0, le=100),
+    city: str | None = None,
+    sentiment: str | None = None,
+    tier: str | None = None,
+    activity_status: str | None = None,
+    gender: str | None = None,
+    user_type: str | None = None,
+    search: str | None = None,
+    _account: auth.Account = Depends(require_admin),
+):
+    if not propensity.available():
+        raise HTTPException(status_code=503, detail="Campaign builder needs customer360.csv")
+    _check_product(product, allow_any=False)
+    ids = _allowed_ids(city, sentiment, tier, activity_status, gender, user_type, search)
+    return propensity.audience_csv(ids, product, group, channel, offer, min_pct)
 
 
 @app.get("/api/users")

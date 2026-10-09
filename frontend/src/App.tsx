@@ -14,6 +14,8 @@ import { SentimentSection } from "./components/sections/SentimentSection";
 import { LoyaltySection } from "./components/sections/LoyaltySection";
 import { InsuranceSection } from "./components/sections/InsuranceSection";
 import { SegmentsSection } from "./components/sections/SegmentsSection";
+import { LikelihoodSection } from "./components/sections/LikelihoodSection";
+import { CampaignSection } from "./components/sections/CampaignSection";
 import { UserTable } from "./components/UserTable";
 import { UserDetailDrawer } from "./components/UserDetailDrawer";
 import { Skeleton } from "./components/ui";
@@ -75,6 +77,22 @@ function Shell() {
           element={
             <Guarded section="segments">
               <SegmentsPage />
+            </Guarded>
+          }
+        />
+        <Route
+          path="likelihood"
+          element={
+            <Guarded section="likelihood">
+              <LikelihoodSection />
+            </Guarded>
+          }
+        />
+        <Route
+          path="campaign"
+          element={
+            <Guarded section="campaign">
+              <CampaignSection />
             </Guarded>
           }
         />
