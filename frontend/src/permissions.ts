@@ -9,6 +9,8 @@ export type SectionKey =
   | "loyalty"
   | "insurance"
   | "segments"
+  | "likelihood"
+  | "campaign"
   | "users";
 
 const ACCESS: Record<Role, SectionKey[]> = {
@@ -21,6 +23,8 @@ const ACCESS: Record<Role, SectionKey[]> = {
     "loyalty",
     "insurance",
     "segments",
+    "likelihood",
+    "campaign",
     "users",
   ],
   customer: ["demographics", "activity", "driving", "loyalty"],
