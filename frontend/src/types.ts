@@ -225,6 +225,11 @@ export interface DashboardFilters {
   activity_status?: string;
   gender?: string;
   user_type?: string;
+  age_band?: string;
+  housing_type?: string;
+  life_stage?: string;
+  platform?: string;
+  segment?: string;
   search?: string;
 }
 

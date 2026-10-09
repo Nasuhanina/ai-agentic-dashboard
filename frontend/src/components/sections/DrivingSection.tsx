@@ -3,8 +3,10 @@ import { ChartCard } from "../ui";
 import { Donut, HorizontalBars, VerticalBars } from "../charts";
 import { SectionHeading } from "./DemographicsSection";
 import { fmtCompact, fmtNum } from "../../lib/format";
+import { useDashboard } from "../../context/DashboardContext";
 
 export function DrivingSection({ data }: { data: DrivingInsights }) {
+  const { filters, toggleFilter } = useDashboard();
   const events = [
     { label: "Harsh braking", value: data.harsh_braking_total },
     { label: "Harsh accel.", value: data.harsh_acceleration_total },
@@ -23,7 +25,12 @@ export function DrivingSection({ data }: { data: DrivingInsights }) {
           <VerticalBars data={data.driving_score_bands} color="#4f46e5" />
         </ChartCard>
         <ChartCard title="Vehicle segment" subtitle="Dominant segment per customer">
-          <Donut data={data.transport_modes} height={240} />
+          <Donut
+            data={data.transport_modes}
+            height={240}
+            onSelect={(label) => toggleFilter("segment", label)}
+            selected={filters.segment}
+          />
         </ChartCard>
         <ChartCard title="Safety events (30d)" subtitle="Total risky-driving events">
           <HorizontalBars data={events} color="#f43f5e" height={240} />

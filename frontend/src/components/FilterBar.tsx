@@ -67,10 +67,32 @@ export function FilterBar({
     value.activity_status ||
     value.gender ||
     value.user_type ||
+    value.age_band ||
+    value.housing_type ||
+    value.life_stage ||
+    value.platform ||
+    value.segment ||
     value.search;
 
+  const FILTER_LABELS: Record<string, string> = {
+    city: "City",
+    sentiment: "Sentiment",
+    tier: "Tier",
+    activity_status: "Activity",
+    gender: "Gender",
+    user_type: "User type",
+    age_band: "Age",
+    housing_type: "Housing",
+    life_stage: "Life stage",
+    platform: "Platform",
+    segment: "Segment",
+    search: "Search",
+  };
+  const active = Object.entries(value).filter(([, v]) => v) as [string, string][];
+
   return (
-    <div className="flex flex-wrap items-end gap-3">
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-end gap-3">
       <label className="flex flex-col gap-1">
         <span className="text-[11px] font-medium uppercase tracking-wide text-ink-500">Search</span>
         <input
@@ -114,6 +136,36 @@ export function FilterBar({
           <span className="h-3 w-3 animate-spin rounded-full border-2 border-ink-300 border-t-indigo-500" />
           Updating…
         </span>
+      )}
+      </div>
+
+      {active.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2 border-t border-ink-100 pt-3">
+          <span className="text-[11px] font-semibold uppercase tracking-wide text-ink-400">Active</span>
+          {active.map(([k, v]) => (
+            <span
+              key={k}
+              className="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-medium text-indigo-700 ring-1 ring-indigo-200"
+            >
+              {FILTER_LABELS[k] ?? k}: {String(v)}
+              <button
+                type="button"
+                onClick={() => onChange({ ...value, [k]: undefined })}
+                className="text-indigo-400 transition hover:text-indigo-700"
+                aria-label={`Remove ${k} filter`}
+              >
+                ×
+              </button>
+            </span>
+          ))}
+          <button
+            type="button"
+            onClick={onReset}
+            className="text-xs font-medium text-ink-500 underline-offset-2 transition hover:text-ink-800 hover:underline"
+          >
+            Clear all
+          </button>
+        </div>
       )}
     </div>
   );

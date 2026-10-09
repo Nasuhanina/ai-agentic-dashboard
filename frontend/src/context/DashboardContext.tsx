@@ -34,6 +34,7 @@ interface DashboardContextValue {
 
   filters: DashboardFilters;
   setFilters: (filters: DashboardFilters) => void;
+  toggleFilter: (key: keyof DashboardFilters, value: string) => void;
   options: Filters | null;
   data: DashboardData | null;
   loading: boolean;
@@ -73,6 +74,10 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   const [userLoading, setUserLoading] = useState(false);
 
   const login = useCallback((s: Session) => setSession(s), []);
+
+  const toggleFilter = useCallback((key: keyof DashboardFilters, value: string) => {
+    setFilters((prev) => ({ ...prev, [key]: prev[key] === value ? undefined : value }));
+  }, []);
 
   const handleLogout = useCallback(() => {
     apiLogout();
@@ -178,6 +183,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     handleLogout,
     filters,
     setFilters,
+    toggleFilter,
     options,
     data,
     loading,

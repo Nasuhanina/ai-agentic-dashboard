@@ -4,8 +4,10 @@ import { Donut, VerticalBars } from "../charts";
 import { STATUS_COLORS } from "../../lib/colors";
 import { SectionHeading } from "./DemographicsSection";
 import { fmtNum } from "../../lib/format";
+import { useDashboard } from "../../context/DashboardContext";
 
 export function ActivitySection({ data }: { data: Activity }) {
+  const { filters, toggleFilter } = useDashboard();
   return (
     <section>
       <SectionHeading title="In-app activity" subtitle="Tenure, sessions and login recency" />
@@ -15,6 +17,8 @@ export function ActivitySection({ data }: { data: Activity }) {
             data={data.status}
             colorMap={STATUS_COLORS}
             centerLabel={{ value: `${data.status[0]?.pct ?? 0}%`, caption: data.status[0]?.label ?? "" }}
+            onSelect={(label) => toggleFilter("activity_status", label)}
+            selected={filters.activity_status}
           />
         </ChartCard>
         <ChartCard title="Login recency" subtitle="Days since last login">
@@ -24,7 +28,13 @@ export function ActivitySection({ data }: { data: Activity }) {
           <VerticalBars data={data.tenure_buckets} color="#7c3aed" />
         </ChartCard>
         <ChartCard title="Platform" subtitle="Device split">
-          <Donut data={data.platform} colorMap={{ iOS: "#4f46e5", Android: "#14b8a6" }} height={220} />
+          <Donut
+            data={data.platform}
+            colorMap={{ iOS: "#4f46e5", Android: "#14b8a6" }}
+            height={220}
+            onSelect={(label) => toggleFilter("platform", label)}
+            selected={filters.platform}
+          />
         </ChartCard>
         <ChartCard title="Engagement metrics" subtitle="Averages per customer" className="lg:col-span-2">
           <div className="grid grid-cols-2 gap-x-8">

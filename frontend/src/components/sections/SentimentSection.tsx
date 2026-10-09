@@ -4,8 +4,10 @@ import { Donut, HorizontalBars, TrendArea } from "../charts";
 import { SENTIMENT_COLORS } from "../../lib/colors";
 import { SectionHeading } from "./DemographicsSection";
 import { fmtNum } from "../../lib/format";
+import { useDashboard } from "../../context/DashboardContext";
 
 export function SentimentSection({ data }: { data: Sentiment }) {
+  const { filters, toggleFilter } = useDashboard();
   const trend = data.trend.map((t) => ({ period: `P${t.index + 1}`, score: t.score }));
   return (
     <section>
@@ -15,7 +17,13 @@ export function SentimentSection({ data }: { data: Sentiment }) {
       />
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <ChartCard title="Sentiment mix" subtitle="Across filtered customers">
-          <Donut data={data.distribution} colorMap={SENTIMENT_COLORS} height={240} />
+          <Donut
+            data={data.distribution}
+            colorMap={SENTIMENT_COLORS}
+            height={240}
+            onSelect={(label) => toggleFilter("sentiment", label)}
+            selected={filters.sentiment}
+          />
         </ChartCard>
         <ChartCard
           title="Sentiment trend"

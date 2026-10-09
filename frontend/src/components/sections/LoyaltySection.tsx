@@ -4,8 +4,10 @@ import { Donut, StackedTierBars, TrendArea } from "../charts";
 import { TIER_COLORS } from "../../lib/colors";
 import { SectionHeading } from "./DemographicsSection";
 import { fmtCompact, fmtNum } from "../../lib/format";
+import { useDashboard } from "../../context/DashboardContext";
 
 export function LoyaltySection({ data }: { data: Loyalty }) {
+  const { filters, toggleFilter } = useDashboard();
   return (
     <section>
       <SectionHeading
@@ -14,7 +16,13 @@ export function LoyaltySection({ data }: { data: Loyalty }) {
       />
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <ChartCard title="Tier distribution" subtitle="Members per loyalty tier">
-          <Donut data={data.tier_distribution} colorMap={TIER_COLORS} height={240} />
+          <Donut
+            data={data.tier_distribution}
+            colorMap={TIER_COLORS}
+            height={240}
+            onSelect={(label) => toggleFilter("tier", label)}
+            selected={filters.tier}
+          />
         </ChartCard>
         <ChartCard title="Points trend" subtitle="Average balance by month" className="lg:col-span-2">
           <TrendArea data={data.trend} xKey="month" yKey="points" color="#d4a017" name="Avg points" />

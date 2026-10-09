@@ -26,6 +26,11 @@ def filter_users(
     activity_status: str | None = None,
     gender: str | None = None,
     user_type: str | None = None,
+    age_band: str | None = None,
+    housing_type: str | None = None,
+    life_stage: str | None = None,
+    platform: str | None = None,
+    segment: str | None = None,
     search: str | None = None,
 ) -> list[User]:
     result = USERS
@@ -41,6 +46,16 @@ def filter_users(
         result = [u for u in result if u.gender.lower() == gender.lower()]
     if user_type:
         result = [u for u in result if u.user_type.lower() == user_type.lower()]
+    if age_band:
+        result = [u for u in result if u.age_band.lower() == age_band.lower()]
+    if housing_type:
+        result = [u for u in result if u.income_band.lower() == housing_type.lower()]
+    if life_stage:
+        result = [u for u in result if u.occupation.lower() == life_stage.lower()]
+    if platform:
+        result = [u for u in result if u.platform.lower() == platform.lower()]
+    if segment:
+        result = [u for u in result if u.primary_transport_mode.lower() == segment.lower()]
     if search:
         s = search.lower()
         result = [

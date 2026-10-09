@@ -48,12 +48,16 @@ export function VerticalBars({
   color = "#4f46e5",
   height = 240,
   name = "Users",
+  onSelect,
+  selected,
 }: {
   data: Datum[];
   colorMap?: Record<string, string>;
   color?: string;
   height?: number;
   name?: string;
+  onSelect?: (label: string) => void;
+  selected?: string;
 }) {
   if (!data.length) return <EmptyState message="No data" />;
   return (
@@ -63,9 +67,20 @@ export function VerticalBars({
         <XAxis dataKey="label" tick={AXIS} tickLine={false} axisLine={false} interval={0} />
         <YAxis tick={AXIS} tickLine={false} axisLine={false} width={44} />
         <Tooltip content={<TooltipBox />} cursor={{ fill: "rgba(79,70,229,0.06)" }} />
-        <Bar dataKey="value" name={name} radius={[4, 4, 0, 0]} maxBarSize={46}>
+        <Bar
+          dataKey="value"
+          name={name}
+          radius={[4, 4, 0, 0]}
+          maxBarSize={46}
+          onClick={(entry: any) => onSelect?.(entry?.label ?? entry?.payload?.label)}
+          style={{ cursor: onSelect ? "pointer" : "default" }}
+        >
           {data.map((d, i) => (
-            <Cell key={d.label} fill={colorForLabel(d.label, i, colorMap) ?? color} />
+            <Cell
+              key={d.label}
+              fill={colorForLabel(d.label, i, colorMap) ?? color}
+              fillOpacity={selected && selected !== d.label ? 0.35 : 1}
+            />
           ))}
         </Bar>
       </BarChart>
@@ -80,6 +95,8 @@ export function HorizontalBars({
   name = "Users",
   color = "#4f46e5",
   labelWidth = 110,
+  onSelect,
+  selected,
 }: {
   data: Datum[];
   colorMap?: Record<string, string>;
@@ -87,6 +104,8 @@ export function HorizontalBars({
   name?: string;
   color?: string;
   labelWidth?: number;
+  onSelect?: (label: string) => void;
+  selected?: string;
 }) {
   if (!data.length) return <EmptyState message="No data" />;
   return (
@@ -103,9 +122,20 @@ export function HorizontalBars({
           width={labelWidth}
         />
         <Tooltip content={<TooltipBox />} cursor={{ fill: "rgba(79,70,229,0.06)" }} />
-        <Bar dataKey="value" name={name} radius={[0, 4, 4, 0]} maxBarSize={22}>
+        <Bar
+          dataKey="value"
+          name={name}
+          radius={[0, 4, 4, 0]}
+          maxBarSize={22}
+          onClick={(entry: any) => onSelect?.(entry?.label ?? entry?.payload?.label)}
+          style={{ cursor: onSelect ? "pointer" : "default" }}
+        >
           {data.map((d, i) => (
-            <Cell key={d.label} fill={colorForLabel(d.label, i, colorMap) ?? color} />
+            <Cell
+              key={d.label}
+              fill={colorForLabel(d.label, i, colorMap) ?? color}
+              fillOpacity={selected && selected !== d.label ? 0.35 : 1}
+            />
           ))}
         </Bar>
       </BarChart>
@@ -118,11 +148,15 @@ export function Donut({
   colorMap,
   height = 240,
   centerLabel,
+  onSelect,
+  selected,
 }: {
   data: Datum[];
   colorMap?: Record<string, string>;
   height?: number;
   centerLabel?: { value: string; caption: string };
+  onSelect?: (label: string) => void;
+  selected?: string;
 }) {
   if (!data.length || data.every((d) => d.value === 0)) return <EmptyState message="No data" />;
   return (
@@ -137,9 +171,15 @@ export function Donut({
             outerRadius="82%"
             paddingAngle={2}
             stroke="none"
+            onClick={(entry: any) => onSelect?.(entry?.name ?? entry?.payload?.label)}
+            style={{ cursor: onSelect ? "pointer" : "default" }}
           >
             {data.map((d, i) => (
-              <Cell key={d.label} fill={colorForLabel(d.label, i, colorMap)} />
+              <Cell
+                key={d.label}
+                fill={colorForLabel(d.label, i, colorMap)}
+                fillOpacity={selected && selected !== d.label ? 0.35 : 1}
+              />
             ))}
           </Pie>
           <Tooltip content={<TooltipBox />} />

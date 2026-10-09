@@ -42,6 +42,21 @@ class LoginRequest(BaseModel):
     password: str
 
 
+class FilterParams(BaseModel):
+    city: str | None = None
+    sentiment: str | None = None
+    tier: str | None = None
+    activity_status: str | None = None
+    gender: str | None = None
+    user_type: str | None = None
+    age_band: str | None = None
+    housing_type: str | None = None
+    life_stage: str | None = None
+    platform: str | None = None
+    segment: str | None = None
+    search: str | None = None
+
+
 def get_current_account(authorization: str | None = Header(default=None)) -> auth.Account:
     if not authorization or not authorization.lower().startswith("bearer "):
         raise HTTPException(status_code=401, detail="Not authenticated")
@@ -57,23 +72,20 @@ def require_admin(account: auth.Account = Depends(get_current_account)) -> auth.
     return account
 
 
-def _filtered(
-    city: str | None,
-    sentiment: str | None,
-    tier: str | None,
-    activity_status: str | None,
-    gender: str | None,
-    user_type: str | None,
-    search: str | None,
-):
+def _filtered(f: FilterParams):
     return analytics.filter_users(
-        city=city,
-        sentiment=sentiment,
-        tier=tier,
-        activity_status=activity_status,
-        gender=gender,
-        user_type=user_type,
-        search=search,
+        city=f.city,
+        sentiment=f.sentiment,
+        tier=f.tier,
+        activity_status=f.activity_status,
+        gender=f.gender,
+        user_type=f.user_type,
+        age_band=f.age_band,
+        housing_type=f.housing_type,
+        life_stage=f.life_stage,
+        platform=f.platform,
+        segment=f.segment,
+        search=f.search,
     )
 
 
@@ -108,7 +120,6 @@ def me(account: auth.Account = Depends(get_current_account)) -> dict:
     return {"role": account.role, "username": account.username, "name": account.name}
 
 
-
 @app.get("/api/filters")
 def filters(_account: auth.Account = Depends(get_current_account)) -> dict:
     def uniq(attr: str) -> list[str]:
@@ -125,130 +136,52 @@ def filters(_account: auth.Account = Depends(get_current_account)) -> dict:
 
 
 @app.get("/api/summary")
-def get_summary(
-    city: str | None = None,
-    sentiment: str | None = None,
-    tier: str | None = None,
-    activity_status: str | None = None,
-    gender: str | None = None,
-    search: str | None = None,
-    user_type: str | None = None,
-    _account: auth.Account = Depends(get_current_account),
-):
-    return analytics.summary(_filtered(city, sentiment, tier, activity_status, gender, user_type, search))
+def get_summary(f: FilterParams = Depends(), _account: auth.Account = Depends(get_current_account)):
+    return analytics.summary(_filtered(f))
 
 
 @app.get("/api/demographics")
-def get_demographics(
-    city: str | None = None,
-    sentiment: str | None = None,
-    tier: str | None = None,
-    activity_status: str | None = None,
-    gender: str | None = None,
-    search: str | None = None,
-    user_type: str | None = None,
-    _account: auth.Account = Depends(get_current_account),
-):
-    return analytics.demographics(_filtered(city, sentiment, tier, activity_status, gender, user_type, search))
+def get_demographics(f: FilterParams = Depends(), _account: auth.Account = Depends(get_current_account)):
+    return analytics.demographics(_filtered(f))
 
 
 @app.get("/api/activity")
-def get_activity(
-    city: str | None = None,
-    sentiment: str | None = None,
-    tier: str | None = None,
-    activity_status: str | None = None,
-    gender: str | None = None,
-    search: str | None = None,
-    user_type: str | None = None,
-    _account: auth.Account = Depends(get_current_account),
-):
-    return analytics.activity(_filtered(city, sentiment, tier, activity_status, gender, user_type, search))
+def get_activity(f: FilterParams = Depends(), _account: auth.Account = Depends(get_current_account)):
+    return analytics.activity(_filtered(f))
 
 
 @app.get("/api/interactions")
-def get_interactions(
-    city: str | None = None,
-    sentiment: str | None = None,
-    tier: str | None = None,
-    activity_status: str | None = None,
-    gender: str | None = None,
-    search: str | None = None,
-    user_type: str | None = None,
-    _account: auth.Account = Depends(require_admin),
-):
-    return analytics.interactions(_filtered(city, sentiment, tier, activity_status, gender, user_type, search))
+def get_interactions(f: FilterParams = Depends(), _account: auth.Account = Depends(require_admin)):
+    return analytics.interactions(_filtered(f))
 
 
 @app.get("/api/driving-insights")
-def get_driving_insights(
-    city: str | None = None,
-    sentiment: str | None = None,
-    tier: str | None = None,
-    activity_status: str | None = None,
-    gender: str | None = None,
-    search: str | None = None,
-    user_type: str | None = None,
-    _account: auth.Account = Depends(get_current_account),
-):
-    return analytics.driving_insights(_filtered(city, sentiment, tier, activity_status, gender, user_type, search))
+def get_driving_insights(f: FilterParams = Depends(), _account: auth.Account = Depends(get_current_account)):
+    return analytics.driving_insights(_filtered(f))
 
 
 @app.get("/api/sentiment")
-def get_sentiment(
-    city: str | None = None,
-    sentiment: str | None = None,
-    tier: str | None = None,
-    activity_status: str | None = None,
-    gender: str | None = None,
-    search: str | None = None,
-    user_type: str | None = None,
-    _account: auth.Account = Depends(require_admin),
-):
-    return analytics.sentiment(_filtered(city, sentiment, tier, activity_status, gender, user_type, search))
+def get_sentiment(f: FilterParams = Depends(), _account: auth.Account = Depends(require_admin)):
+    return analytics.sentiment(_filtered(f))
 
 
 @app.get("/api/loyalty")
-def get_loyalty(
-    city: str | None = None,
-    sentiment: str | None = None,
-    tier: str | None = None,
-    activity_status: str | None = None,
-    gender: str | None = None,
-    search: str | None = None,
-    user_type: str | None = None,
-    _account: auth.Account = Depends(get_current_account),
-):
-    return analytics.loyalty(_filtered(city, sentiment, tier, activity_status, gender, user_type, search))
+def get_loyalty(f: FilterParams = Depends(), _account: auth.Account = Depends(get_current_account)):
+    return analytics.loyalty(_filtered(f))
 
 
 @app.get("/api/insurance")
-def get_insurance(
-    city: str | None = None,
-    sentiment: str | None = None,
-    tier: str | None = None,
-    activity_status: str | None = None,
-    gender: str | None = None,
-    user_type: str | None = None,
-    search: str | None = None,
-    _account: auth.Account = Depends(require_admin),
-):
-    return analytics.insurance(_filtered(city, sentiment, tier, activity_status, gender, user_type, search))
+def get_insurance(f: FilterParams = Depends(), _account: auth.Account = Depends(require_admin)):
+    return analytics.insurance(_filtered(f))
 
 
 @app.get("/api/segments")
 def get_segments(
-    city: str | None = None,
-    sentiment: str | None = None,
-    tier: str | None = None,
-    activity_status: str | None = None,
-    gender: str | None = None,
-    user_type: str | None = None,
-    search: str | None = None,
+    f: FilterParams = Depends(),
     ai: bool = False,
     _account: auth.Account = Depends(require_admin),
 ):
-    result = analytics.segments(_filtered(city, sentiment, tier, activity_status, gender, user_type, search))
+    result = analytics.segments(_filtered(f))
     return recommender.apply(result) if ai else result
 
 
@@ -258,16 +191,10 @@ def get_users(
     page_size: int = Query(20, ge=1, le=200),
     sort: str = Query("loyalty_points"),
     order: str = Query("desc"),
-    city: str | None = None,
-    sentiment: str | None = None,
-    tier: str | None = None,
-    activity_status: str | None = None,
-    gender: str | None = None,
-    search: str | None = None,
-    user_type: str | None = None,
+    f: FilterParams = Depends(),
     _account: auth.Account = Depends(require_admin),
 ):
-    users = _filtered(city, sentiment, tier, activity_status, gender, user_type, search)
+    users = _filtered(f)
     return analytics.list_users(users, page, page_size, sort, order)
 
 
