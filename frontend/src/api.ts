@@ -181,12 +181,18 @@ export interface CampaignParams {
   min_pct: number;
 }
 
+// The message channel is sent as `message_channel`: `channel` is a dashboard filter
+// (the customer's last support channel) and would otherwise narrow the audience.
+function campaignQuery({ channel, ...rest }: CampaignParams): Record<string, string | number> {
+  return { ...rest, message_channel: channel };
+}
+
 export function fetchCampaign(filters: DashboardFilters, params: CampaignParams): Promise<CampaignResult> {
-  return get<CampaignResult>("/campaign", filters, { ...params });
+  return get<CampaignResult>("/campaign", filters, campaignQuery(params));
 }
 
 export async function fetchAudienceCsv(filters: DashboardFilters, params: CampaignParams): Promise<string> {
-  const res = await fetch(`${BASE}/campaign/audience.csv${toQuery(filters, { ...params })}`, { headers: authHeaders() });
+  const res = await fetch(`${BASE}/campaign/audience.csv${toQuery(filters, campaignQuery(params))}`, { headers: authHeaders() });
   if (!res.ok) throw new ApiError(res.status, `Request failed: ${res.status} /campaign/audience.csv`);
   return res.text();
 }

@@ -260,7 +260,7 @@ def get_propensity_user(user_id: str, _account: auth.Account = Depends(require_a
 def get_campaign(
     product: str = "insurance_switch",
     group: str = "",
-    channel: str = "WhatsApp",
+    message_channel: str = "WhatsApp",
     offer: str = "No offer",
     min_pct: float = Query(20, ge=0, le=100),
     f: FilterParams = Depends(),
@@ -269,17 +269,17 @@ def get_campaign(
     if not propensity.available():
         raise HTTPException(status_code=503, detail="Campaign builder needs customer360.csv")
     _check_product(product, allow_any=False)
-    if channel not in propensity.CHANNELS or offer not in propensity.OFFERS:
+    if message_channel not in propensity.CHANNELS or offer not in propensity.OFFERS:
         raise HTTPException(status_code=400, detail="Unknown channel or offer")
     ids = _allowed_ids(f)
-    return propensity.campaign(ids, product, group, channel, offer, min_pct)
+    return propensity.campaign(ids, product, group, message_channel, offer, min_pct)
 
 
 @app.get("/api/campaign/audience.csv", response_class=PlainTextResponse)
 def get_campaign_audience(
     product: str = "insurance_switch",
     group: str = "",
-    channel: str = "WhatsApp",
+    message_channel: str = "WhatsApp",
     offer: str = "No offer",
     min_pct: float = Query(20, ge=0, le=100),
     f: FilterParams = Depends(),
@@ -289,7 +289,7 @@ def get_campaign_audience(
         raise HTTPException(status_code=503, detail="Campaign builder needs customer360.csv")
     _check_product(product, allow_any=False)
     ids = _allowed_ids(f)
-    return propensity.audience_csv(ids, product, group, channel, offer, min_pct)
+    return propensity.audience_csv(ids, product, group, message_channel, offer, min_pct)
 
 
 @app.get("/api/users")
