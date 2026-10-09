@@ -190,11 +190,11 @@ def get_segments(
 
 # --- Likelihood to buy + campaign builder (see propensity.py) -----------------
 
-def _allowed_ids(city, sentiment, tier, activity_status, gender, user_type, search) -> set[str] | None:
+def _allowed_ids(f: FilterParams) -> set[str] | None:
     """Ids passing the global filter bar, or None when no filter is set."""
-    if not any([city, sentiment, tier, activity_status, gender, user_type, search]):
+    if not any(v for v in f.model_dump().values()):
         return None
-    return {u.id for u in _filtered(city, sentiment, tier, activity_status, gender, user_type, search)}
+    return {u.id for u in _filtered(f)}
 
 
 def _check_product(product: str, allow_any: bool = True) -> None:
@@ -216,19 +216,13 @@ def get_propensity_users(
     page: int = Query(1, ge=1),
     page_size: int = Query(25, ge=1, le=200),
     sort: str = Query("likelihood"),
-    city: str | None = None,
-    sentiment: str | None = None,
-    tier: str | None = None,
-    activity_status: str | None = None,
-    gender: str | None = None,
-    user_type: str | None = None,
-    search: str | None = None,
+    f: FilterParams = Depends(),
     _account: auth.Account = Depends(require_admin),
 ):
     if not propensity.available():
         raise HTTPException(status_code=503, detail="Likelihood model needs customer360.csv")
     _check_product(product)
-    ids = _allowed_ids(city, sentiment, tier, activity_status, gender, user_type, search)
+    ids = _allowed_ids(f)
     return propensity.users(ids, product, min_pct, group, page, page_size, sort)
 
 
@@ -247,13 +241,7 @@ def get_campaign(
     channel: str = "WhatsApp",
     offer: str = "No offer",
     min_pct: float = Query(20, ge=0, le=100),
-    city: str | None = None,
-    sentiment: str | None = None,
-    tier: str | None = None,
-    activity_status: str | None = None,
-    gender: str | None = None,
-    user_type: str | None = None,
-    search: str | None = None,
+    f: FilterParams = Depends(),
     _account: auth.Account = Depends(require_admin),
 ):
     if not propensity.available():
@@ -261,7 +249,7 @@ def get_campaign(
     _check_product(product, allow_any=False)
     if channel not in propensity.CHANNELS or offer not in propensity.OFFERS:
         raise HTTPException(status_code=400, detail="Unknown channel or offer")
-    ids = _allowed_ids(city, sentiment, tier, activity_status, gender, user_type, search)
+    ids = _allowed_ids(f)
     return propensity.campaign(ids, product, group, channel, offer, min_pct)
 
 
@@ -272,19 +260,13 @@ def get_campaign_audience(
     channel: str = "WhatsApp",
     offer: str = "No offer",
     min_pct: float = Query(20, ge=0, le=100),
-    city: str | None = None,
-    sentiment: str | None = None,
-    tier: str | None = None,
-    activity_status: str | None = None,
-    gender: str | None = None,
-    user_type: str | None = None,
-    search: str | None = None,
+    f: FilterParams = Depends(),
     _account: auth.Account = Depends(require_admin),
 ):
     if not propensity.available():
         raise HTTPException(status_code=503, detail="Campaign builder needs customer360.csv")
     _check_product(product, allow_any=False)
-    ids = _allowed_ids(city, sentiment, tier, activity_status, gender, user_type, search)
+    ids = _allowed_ids(f)
     return propensity.audience_csv(ids, product, group, channel, offer, min_pct)
 
 
