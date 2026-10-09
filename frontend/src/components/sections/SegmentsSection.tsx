@@ -95,7 +95,7 @@ export function SegmentsSection({ data, focus }: { data: SegmentsResponse; focus
                   >
                     <path d="M9 6l6 6-6 6" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
-                  {openKeys[s.key] ? "Hide customers" : `Show customers (${fmtNum(s.count)})`}
+                  {openKeys[s.key] ? "Hide customers" : "Show customers"}
                 </button>
 
                 {openKeys[s.key] && (

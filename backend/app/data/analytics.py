@@ -281,6 +281,17 @@ SEGMENT_DEFS = [
 ]
 
 
+def _unique_member_names(members: list[User]) -> list[dict[str, str]]:
+    seen: set[str] = set()
+    unique: list[dict[str, str]] = []
+    for u in sorted(members, key=lambda u: u.name):
+        if u.name in seen:
+            continue
+        seen.add(u.name)
+        unique.append({"id": u.id, "name": u.name})
+    return unique
+
+
 def segments(users: list[User]) -> dict[str, Any]:
     n = len(users) or 1
     spends = sorted(u.points_earned_30d for u in users if u.points_earned_30d > 0)
@@ -324,9 +335,7 @@ def segments(users: list[User]) -> dict[str, Any]:
             "detail": detail_fns[key](members) if members else "",
             "count": count,
             "pct": round(count / n * 100, 1),
-            "members": [
-                {"id": u.id, "name": u.name} for u in sorted(members, key=lambda u: u.name)
-            ],
+            "members": _unique_member_names(members),
         })
     return {"total": len(users), "segments": out, "recommendation_source": "default"}
 
